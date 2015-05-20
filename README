@@ -1,0 +1,10 @@
+README for QrOverlay
+============================
+
+License: GPLv2 +
+
+Dependencies:
+
+	* libqrencode-dev
+	* libgstreamer1.0-dev
+	* libgstreamer-plugins-base1.0-dev

@@ -1,0 +1,11 @@
+check_PROGRAMS = \
+	qroverlay
+
+TESTS = $(check_PROGRAMS)
+# these tests don't even pass
+noinst_PROGRAMS =
+
+AM_CFLAGS = $(GST_CFLAGS) $(GST_OBJ_CFLAGS) $(GST_CHECK_CFLAGS) $(CHECK_CFLAGS) \
+	$(GST_OPTION_CFLAGS)
+
+LDADD = $(GST_LIBS) $(GST_OBJ_LIBS) $(GST_CHECK_LIBS) $(CHECK_LIBS)
