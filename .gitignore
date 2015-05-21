@@ -1,0 +1,11 @@
+Makefile
+autom4te.cache/*
+config.h*
+config.log
+config.status
+libtool
+src/.deps/
+src/Makefile
+stamp-h1
+tests/.deps/
+tests/Makefile
