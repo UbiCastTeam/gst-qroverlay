@@ -14,6 +14,7 @@ If you define extra data, the additional data will be inserted as well every "ex
 
 With extra-data-interval-buffers=30 and extra-data-span-buffers=2, at 30 frames per second, buffers 1 and 2 will contain the extra data, then the extra data will be inserted again at buffers 60 and 61. Note that the extra data will cycle between values in a csv format string. This feature can be used to specify an audio frequency that is expected.
 
+![screenshot](https://raw.githubusercontent.com/UbiCastTeam/gst-qroverlay/master/screenshot.png)
 
 ## Usage
 
