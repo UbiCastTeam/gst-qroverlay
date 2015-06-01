@@ -434,7 +434,7 @@ gchar *build_string(GstBaseTransform * base, GstBuffer * outbuf, gchar *encode_s
 	encode_string = strcat(encode_string, element_name);
 	g_free(element_name);
 	if(filter->extra_data_enabled && 
-		(filter->frame_number == 1 || filter->frame_number % filter->extra_data_interval_buffers == 0 || 
+		(filter->frame_number == 1 || filter->frame_number % filter->extra_data_interval_buffers == 1 ||
 			(filter->span_frame > 0 && filter->span_frame < filter->extra_data_span_buffers))) {
 	  extra_data_value = parse_data_array(filter, extra_data_value);
 	  GST_LOG_OBJECT(filter, "Build extra data string");
@@ -463,6 +463,7 @@ void overlay_qr_in_frame(Gstqroverlay *filter, QRcode *qrcode, GstBuffer * outbu
   guchar *source_data;
   int k, y, x, yy, realwidth, y_position, x_position;
   guint line = 0;
+  int img_res, quarter_img_res;
 
   GST_DEBUG_OBJECT(filter, "Overlay QRcode in frame");
   gst_buffer_map(outbuf, &current_info, GST_MAP_WRITE);
@@ -470,24 +471,38 @@ void overlay_qr_in_frame(Gstqroverlay *filter, QRcode *qrcode, GstBuffer * outbu
   /* White bg */
   x_position = (int)(filter->width - realwidth) * (filter->x_percent / 100);
   y_position = (int)(filter->height - realwidth) * (filter->y_percent / 100);
+  x_position = GST_ROUND_DOWN_2(x_position);
+  y_position = GST_ROUND_DOWN_4(y_position);
   GST_LOG_OBJECT(filter, "Add white background in frame");
-  for(y=y_position; y < realwidth + y_position	; y++)
-	memset(current_info.data + (filter->width * y + x_position), 0xff, realwidth);
+  img_res = filter->width * filter->height;
+  quarter_img_res = img_res / 4;
+  for(y=y_position; y < realwidth + y_position; y++) {
+    memset(current_info.data + (filter->width * y + x_position), 0xff, realwidth);
+    if (y % 4 == 0)
+    {
+      memset(current_info.data + img_res + y / 4 * filter->width + x_position / 2, 128, realwidth / 2);
+      memset(current_info.data + img_res + y / 4 * filter->width + x_position / 2 + quarter_img_res, 128, realwidth / 2);
+      if (y < (realwidth + y_position) - 4) {
+        memset(current_info.data + img_res + y / 4 * filter->width + x_position / 2 + (filter->width / 2), 128, realwidth / 2);
+        memset(current_info.data + img_res + y / 4 * filter->width + x_position / 2 + quarter_img_res + (filter->width / 2), 128, realwidth / 2);
+      }
+    }
+  }
   GST_LOG_OBJECT(filter, "Add data in frame");
   /* data */
   line += 4 * filter->qrcode_size * filter->width;
   source_data = qrcode->data;
   y = (int)(filter->height - realwidth) / 2;
   for(y=0; y<qrcode->width; y++) {
-	for(x = 0; x < (qrcode->width); x++) {
-	  for(yy=0; yy < filter->qrcode_size; yy++) {
-		k = ((((line + (4 * filter->qrcode_size))) + filter->width * yy + x * filter->qrcode_size) + x_position) + (y_position * filter->width);
-		if(*source_data & 1)
-		  memset(current_info.data + k, 1, filter->qrcode_size);
+	  for(x = 0; x < (qrcode->width); x++) {
+	    for(yy=0; yy < filter->qrcode_size; yy++) {
+  		  k = ((((line + (4 * filter->qrcode_size))) + filter->width * yy + x * filter->qrcode_size) + x_position) + (y_position * filter->width);
+  		  if(*source_data & 1)
+          memset(current_info.data + k, 0, filter->qrcode_size);
+	    }
+	    source_data++;
 	  }
-	  source_data++;
-	}
-	line += (filter->width * filter->qrcode_size);
+	  line += (filter->width * filter->qrcode_size);
   }
   QRcode_free(qrcode);
   gst_buffer_unmap (outbuf, &current_info);
