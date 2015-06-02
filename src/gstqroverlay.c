@@ -434,7 +434,7 @@ gchar *build_string(GstBaseTransform * base, GstBuffer * outbuf, gchar *encode_s
 	encode_string = strcat(encode_string, element_name);
 	g_free(element_name);
 	if(filter->extra_data_enabled && 
-		(filter->frame_number == 1 || filter->frame_number % filter->extra_data_interval_buffers == 1 ||
+		(filter->frame_number == 1 || filter->frame_number % filter->extra_data_interval_buffers == 1 || 
 			(filter->span_frame > 0 && filter->span_frame < filter->extra_data_span_buffers))) {
 	  extra_data_value = parse_data_array(filter, extra_data_value);
 	  GST_LOG_OBJECT(filter, "Build extra data string");
@@ -461,8 +461,7 @@ void overlay_qr_in_frame(Gstqroverlay *filter, QRcode *qrcode, GstBuffer * outbu
 {
   GstMapInfo current_info;
   guchar *source_data;
-  int k, y, x, yy, realwidth, y_position, x_position;
-  guint line = 0;
+  register int32_t k, y, x, yy, realwidth, y_position, x_position, line = 0;
   int img_res, quarter_img_res;
 
   GST_DEBUG_OBJECT(filter, "Overlay QRcode in frame");
@@ -497,8 +496,9 @@ void overlay_qr_in_frame(Gstqroverlay *filter, QRcode *qrcode, GstBuffer * outbu
 	  for(x = 0; x < (qrcode->width); x++) {
 	    for(yy=0; yy < filter->qrcode_size; yy++) {
   		  k = ((((line + (4 * filter->qrcode_size))) + filter->width * yy + x * filter->qrcode_size) + x_position) + (y_position * filter->width);
-  		  if(*source_data & 1)
+  		  if(*source_data & 1) {
           memset(current_info.data + k, 0, filter->qrcode_size);
+        }
 	    }
 	    source_data++;
 	  }
