@@ -448,7 +448,7 @@ gchar *build_string(GstBaseTransform * base, GstBuffer * outbuf, gchar *encode_s
 	  if (filter->span_frame == filter->extra_data_span_buffers) {
 	 	filter->array_counter++;
 	 	filter->span_frame = 0;
- 		if (filter->array_counter > filter->array_size)
+ 		if (filter->array_counter >= filter->array_size)
 	 	  filter->array_counter = 0;
 	  }
 	}		
