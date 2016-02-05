@@ -1,18 +1,29 @@
 dnl required version of autoconf
 AC_PREREQ([2.53])
 
-dnl TODO: fill in your package name and package version here
-AC_INIT([my-plugin-package],[1.0.0])
+AC_INIT([qroverlay-package],[1.0.0])
 
-dnl required versions of gstreamer and plugins-base
+GST_API_VERSION=1.0
 GST_REQUIRED=1.0.0
 GSTPB_REQUIRED=1.0.0
+
+dnl AM_MAINTAINER_MODE provides the option to enable maintainer mode
+AM_MAINTAINER_MODE
+dnl add this
+AC_PROG_CXX
+
+AC_SUBST(GST_API_VERSION)
+AC_DEFINE_UNQUOTED(GST_API_VERSION, "$GST_API_VERSION",
+  [GStreamer API Version])
 
 AC_CONFIG_SRCDIR([src/gstqroverlay.c])
 AC_CONFIG_HEADERS([config.h])
 
 dnl required version of automake
 AM_INIT_AUTOMAKE([1.10])
+
+dnl make aclocal work in maintainer mode
+AC_SUBST(ACLOCAL_AMFLAGS, "-I m4")
 
 dnl enable mainainer mode by default
 AM_MAINTAINER_MODE([enable])
@@ -28,6 +39,10 @@ dnl give error and exit if we don't have pkgconfig
 AC_CHECK_PROG(HAVE_PKGCONFIG, pkg-config, [ ], [
   AC_MSG_ERROR([You need to have pkg-config installed!])
 ])
+
+dnl check for libm, for sin()
+LT_LIB_M
+AC_SUBST(LIBM)
 
 dnl Check for the required version of GStreamer core (and gst-plugins-base)
 dnl This will export GST_CFLAGS and GST_LIBS variables for use in Makefile.am
@@ -59,6 +74,14 @@ PKG_CHECK_MODULES(GST, [
   ])
 ])
 
+dnl checks for gstreamer
+dnl uninstalled is selected preferentially -- see pkg-config(1)
+AG_GST_CHECK_GST($GST_API_VERSION, [$GST_REQUIRED], yes)
+AG_GST_CHECK_GST_BASE($GST_API_VERSION, [$GST_REQUIRED], yes)
+AG_GST_CHECK_GST_CHECK($GST_API_VERSION, [$GST_REQUIRED], no)
+AG_GST_CHECK_GST_PLUGINS_BASE($GST_API_VERSION, [$GST_REQUIRED], yes)
+AM_CONDITIONAL(HAVE_GST_CHECK, test "x$HAVE_GST_CHECK" = "xyes")
+
 PKG_CHECK_MODULES(LIBQRENCODE, libqrencode)
 
 # Checks for header files.
@@ -87,14 +110,10 @@ dnl set proper LDFLAGS for plugins
 GST_PLUGIN_LDFLAGS='-module -avoid-version -export-symbols-regex [_]*\(gst_\|Gst\|GST_\).*'
 AC_SUBST(GST_PLUGIN_LDFLAGS)
 
-PKG_CHECK_MODULES(CHECK, check)
-PKG_CHECK_MODULES(GST_CHECK, gstreamer-check-1.0 >= $GST_REQUIRED,
-                  [ AC_SUBST(GST_CHECK_CFLAGS)
-                    AC_SUBST(GST_CHECK__LIBS)], HAVE_GST_CHECK=no)
-
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
+m4/Makefile
 tests/Makefile
 ])
 AC_OUTPUT
