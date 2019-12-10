@@ -22,12 +22,40 @@ With extra-data-interval-buffers=30 and extra-data-span-buffers=2, at 30 frames 
 gst-launch-1.0 videotestsrc pattern=2 ! "video/x-raw, format=(string)I420, width=(int)320, height=(int)240, framerate=(fraction)30/1" ! qroverlay name=testoverlay x=50 qrcode-error-correction=3 extra-data-span-buffers=1 extra-data-interval-buffers=30 extra-data-name=mydata extra-data-array="240,480,720,960,1200,1440,1680,1920" pixel-size=2 ! videoconvert ! xvimagesink
 ```
 
-## Installation and requirements
+## Installation, requirements and testing
 
 License: GPLv2 +
 
-Dependencies:
+### Dependencies:
 
-	* libqrencode-dev
-	* libgstreamer1.0-dev
-	* libgstreamer-plugins-base1.0-dev
+* dh-autoreconf
+* libqrencode-dev
+* libgstreamer1.0-dev
+* libgstreamer-plugins-base1.0-dev
+
+### Installation on ubuntu
+
+#### Install build deps
+
+`sudo apt install dh-autoreconf libqrencode-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev`
+
+#### Compilation
+
+```
+./autogen.sh
+./configure --prefix="$HOME"
+make
+```
+
+#### Installation
+
+`make install`
+
+#### Test
+
+```
+sudo apt install gstreamer1.0-plugins-base
+export GST_PLUGIN_PATH=~/.local/share/gstreamer-1.0/
+gst-inspect-1.0 qroverlay
+gst-launch-1.0 videotestsrc pattern=2 ! "video/x-raw, format=(string)I420, width=(int)320, height=(int)240, framerate=(fraction)30/1" ! qroverlay name=testoverlay x=50 qrcode-error-correction=3 extra-data-span-buffers=1 extra-data-interval-buffers=30 extra-data-name=mydata extra-data-array="240,480,720,960,1200,1440,1680,1920" pixel-size=2 ! videoconvert ! xvimagesink
+```
